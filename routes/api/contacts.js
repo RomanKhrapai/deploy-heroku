@@ -2,11 +2,11 @@ const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 const {
     listContacts,
-    getById,
+    getContactById,
     addContact,
     updateContact,
     removeContact,
-} = require("../../contacts.js");
+} = require("../../models/contacts");
 
 const { schema } = require("../../validation");
 const router = express.Router();
@@ -16,7 +16,7 @@ router.get("/", async (req, res, next) => {
 });
 
 router.get("/:contactId", async (req, res, next) => {
-    const data = await getById(req.params.contactId);
+    const data = await getContactById(req.params.contactId);
     if (data) {
         res.status(200).json(data);
     } else {
@@ -25,26 +25,13 @@ router.get("/:contactId", async (req, res, next) => {
 });
 
 router.post("/", async (req, res, next) => {
-    const { name, email, phone } = req.body;
-    if (!name) {
-        return res.status(400).json({ message: "missing required name field" });
-    } else if (!email) {
-        return res
-            .status(400)
-            .json({ message: "missing required email field" });
-    } else if (!phone) {
-        return res
-            .status(400)
-            .json({ message: "missing required phone field" });
-    }
-    const { error } = await schema.validate({ name, email, phone });
+    const body = { id: uuidv4(), ...req.body };
+    const { error } = await schema.validate(req.body);
     if (error) {
         res.status(400).json(error);
         return;
     }
-
-    const data = await addContact(uuidv4(), name, email, phone);
-    res.status(201).json(data);
+    res.status(201).json(await addContact(body));
 });
 
 router.delete("/:contactId", async (req, res, next) => {
@@ -59,24 +46,15 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
     const body = req.body;
-    if (body === {}) {
-        return res.status(400).json({ message: "missing fields" });
-    }
     const { error } = await schema.validate(body);
     if (error) {
         return res.status(400).json(error);
     }
-    const data = await updateContact(
-        req.params.contactId,
-        body.name,
-        body.email,
-        body.phone
-    );
+    const data = await updateContact(req.params.contactId, body);
     if (data) {
-        res.status(200).json(data);
-    } else {
-        res.status(404).json({ message: "Not found" });
+        return res.status(200).json(data);
     }
+    res.status(404).json({ message: "Not found" });
 });
 
 module.exports = router;
