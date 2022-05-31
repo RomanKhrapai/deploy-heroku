@@ -1,52 +1,19 @@
-const fs = require("fs").promises;
-const path = require("path");
-const contactsPath = path.resolve("./models/contacts.json");
+const Contacts = require("./schemas/contacts");
 
-const listContacts = async () => {
-    try {
-        const data = await fs.readFile(contactsPath, "utf8");
-        return JSON.parse(data);
-    } catch (err) {
-        console.log(err);
-    }
-};
+const listContacts = async () => Contacts.find();
 
-const getContactById = async (contactId) => {
-    const data = await listContacts();
-    return data.find(({ id }) => id === contactId);
-};
+const getContactById = async (contactId) => Contacts.findById(contactId);
 
-const removeContact = async (contactId) => {
-    const data = await listContacts();
-    const newData = data.filter(({ id }) => id !== contactId);
-    await fs.writeFile(contactsPath, JSON.stringify(newData), "utf8");
-    return data.length !== newData.length;
-};
+const removeContact = async (contactId) =>
+    Contacts.findByIdAndRemove(contactId);
 
-const addContact = async (body) => {
-    try {
-        const data = await listContacts();
-        const newData = [...data, body];
-        await fs.writeFile(contactsPath, JSON.stringify(newData), "utf8");
-        return body;
-    } catch (err) {
-        console.log(err);
-    }
-};
+const addContact = async (body) => Contacts.create(body);
 
-const updateContact = async (contactId, body) => {
-    try {
-        const data = await listContacts();
-        const itemById = data.find((items) => items.id === contactId);
-        itemById.name = body.name;
-        itemById.email = body.email;
-        itemById.phone = body.phone;
-        await fs.writeFile(contactsPath, JSON.stringify(data), "utf8");
-        return itemById;
-    } catch (err) {
-        console.log(err);
-    }
-};
+const updateContact = async (contactId, body) =>
+    Contacts.findByIdAndUpdate(contactId, body, { new: true });
+
+const updateStatusContact = async (contactId, { favorite }) =>
+    Contacts.findByIdAndUpdate(contactId, { favorite }, { new: true });
 
 module.exports = {
     listContacts,
@@ -54,4 +21,5 @@ module.exports = {
     removeContact,
     addContact,
     updateContact,
+    updateStatusContact,
 };
