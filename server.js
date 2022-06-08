@@ -1,16 +1,22 @@
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
 const app = require("./app");
 
+dotenv.config();
+
 const connection = mongoose.connect(
-    "mongodb+srv://roman:1q2w3e4r@cluster0.f9coy.mongodb.net/?retryWrites=true",
+    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}${process.env.DB_HOST}`,
     {
-        dbName: "contacts",
+        dbName: process.env.DB_NAME,
     }
 );
 connection
     .then(() => {
-        app.listen(3000, function () {
-            console.log(`Server running. Use our API on port: ${3000}`);
+        app.listen(parseInt(process.env.PORT), function () {
+            console.log(
+                `Server running. Use our API on port: ${process.env.PORT}`
+            );
             console.log("Database connection successful");
         });
     })
