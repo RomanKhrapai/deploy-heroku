@@ -7,7 +7,11 @@ const {
     upload,
 } = require("../../middlewares");
 const { users: ctrl } = require("../../controllers");
-const { joiSchemaSubscription, joiSchema } = require("../../models/user");
+const {
+    joiSchemaSubscription,
+    joiSchema,
+    joiSchemaEmail,
+} = require("../../models/user");
 
 const router = express.Router();
 
@@ -26,6 +30,15 @@ router.patch(
     checkAuth,
     upload.single("avatar"),
     ctrlWrapper(ctrl.updateAvatar)
+);
+router.get(
+    "/verify/:verificationToken",
+    ctrlWrapper(ctrl.verificationUserMail)
+);
+router.post(
+    "/verify",
+    validation(joiSchemaEmail),
+    ctrlWrapper(ctrl.reSendVerificationToken)
 );
 
 module.exports = router;
